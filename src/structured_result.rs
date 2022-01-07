@@ -1,5 +1,10 @@
 use anyhow::{anyhow, Context, Result};
+use regex::Regex;
 use serde::Serialize;
+
+lazy_static! {
+    static ref ITEM_NAME_REGEX: Regex = Regex::new(r#"\{"text":"([^"]+)"}"#).unwrap();
+}
 
 #[derive(Debug, Serialize)]
 pub enum StructuredResult {
@@ -32,7 +37,7 @@ impl StructuredResult {
             if let nbt::Value::Compound(compound) = item_nbt {
                 items.push(FoundItem {
                     item_id: Self::get_item_id(&compound)?,
-                    name: None,
+                    name: Self::get_item_name(&compound),
                     location: Self::get_item_location(&compound)?,
                     location_status: None,
                 });
@@ -87,5 +92,34 @@ impl StructuredResult {
             get_pos_elem(&l[1]),
             get_pos_elem(&l[2]),
         ))
+    }
+
+    fn get_item_name(compound: &nbt::Map<String, nbt::Value>) -> Option<String> {
+        let item = match compound.get("Item") {
+            Some(nbt::Value::Compound(i)) => i,
+            _ => return None,
+        };
+
+        let tag = match item.get("tag") {
+            Some(nbt::Value::Compound(t)) => t,
+            _ => return None,
+        };
+
+        let display = match tag.get("display") {
+            Some(nbt::Value::Compound(d)) => d,
+            _ => return None,
+        };
+
+        let name = match display.get("Name") {
+            Some(nbt::Value::String(n)) => n.clone(),
+            _ => return None,
+        };
+
+        let m = match ITEM_NAME_REGEX.captures(&name) {
+            Some(m) => m,
+            None => return None,
+        };
+
+        Some(m.get(1).unwrap().as_str().to_string())
     }
 }

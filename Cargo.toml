@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
+lazy_static = "1.4"
 log = "0.4"
 hematite-nbt = "0.5"
 regex = "1.5"

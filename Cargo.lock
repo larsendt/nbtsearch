@@ -201,6 +201,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "hematite-nbt",
+ "lazy_static",
  "log",
  "regex",
  "serde",

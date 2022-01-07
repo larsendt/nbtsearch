@@ -10,6 +10,9 @@ use structopt::StructOpt;
 use structured_result::StructuredResult;
 use world::World;
 
+#[macro_use(lazy_static)]
+extern crate lazy_static;
+
 #[derive(StructOpt, Debug)]
 struct Opt {
     world_dir: String,
@@ -32,16 +35,12 @@ fn search_item_by_id(search_str: &str, world: &World, dimension: &str) -> Result
                         if let Some(nbt::Value::Compound(item)) = compound.get("Item") {
                             if let Some(nbt::Value::String(item_id)) = item.get("id") {
                                 if item_id == search_str {
+                                    debug!("Found item: {:?}", ent);
                                     results.push(ent.clone());
-                                } else {
-                                    debug!("Mismatch: {} != {}", search_str, item_id);
                                 }
                             } else {
                                 panic!("No item ID found in item: {:?}", ent);
                             }
-                        } else {
-                            let ent_id = compound.get("id").unwrap();
-                            debug!("Entity was not an item: {:?}", ent_id);
                         }
                     } else {
                         panic!("NBT was not a Compound: {:?}", ent);
